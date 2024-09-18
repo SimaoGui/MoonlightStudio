@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parallax LandingPage</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/scrollreveal"></script>
+</head>
+    <body>
+        <header>
+            <a href="#" class="logo">SimaoGui</a>
+            <ul>
+            <li><a href="#" class="active">Início</a></li>
+            <li><a href="#">Sobre</a></li>
+            <li><a href="#">Apoio</a></li>
+            <li><a href="#">Contato</a></li>
+            </ul>
+        </header>
+        <section>
+            <img src="stars.png" id="stars">
+            <img src="moon.png" id="moon">
+            <img src="mountains_behind.png" id="mountains_behind">
+            <h2 id="text">Moonlight Studio</h2>
+            <button href="#" id="btn">Explore</button>
+            <img src="mountains_front.png" id="mountains_front">    
+        </section>
+        <div class="sec" id="sec">
+            <h2 class='paragrafo'>Efeito Parallax</h2>
+            <p class='paragrafo'>
+                O efeito parallax é uma técnica de web design na qual o plano de fundo do site se move em um ritmo mais lento do que o primeiro plano. 
+                <br>O resultado é um efeito 3D que surge conforme os visitantes rolam pelo site, adicionando uma sensação de profundidade e criando uma experiência de navegação mais imersiva.
+                <br><br>O parallax se baseia em uma ilusão de ótica. Como o olho humano percebe os objetos próximos como maiores do que os mais distantes, a sensação é de que os últimos se movem mais lentamente.
+                <br><br>Essa técnica vem sendo adotada há muito tempo em diferentes mídias, promovendo um efeito mais realista.
+                <br>Seu primeiro uso foi na animação tradicional, em Branca de Neve e os Sete Anões, da Disney, e em games como Super Mario.
+                <br><br>Com os avanços em CSS e HTML, o efeito paralaxe evoluiu para o mundo do web design.
+                <br><br>O efeito parallax surgiu como uma das principais tendências do web design em 2011. 
+                <br>Muitas modas já apareceram e desapareceram na Internet, mas o efeito parallax parece ter conseguido estabelecer-se como uma peça de design que veio para ficar.
+                <br><br>Até mesmo se estiver criando um convite online, o efeito parallax pode trazer um diferencial a mais.
+            </p>
+        </div>
+        <script>
+            let stars = document.getElementById('stars')
+            let moon = document.getElementById('moon')
+            let mountains_behind = document.getElementById('mountains_behind')
+            let text = document.getElementById('text')
+            let btn = document.getElementById('btn')
+            let mountains_front = document.getElementById('mountains_front')
+            let header = document.querySelector('header')
+
+            window.addEventListener('scroll', function(){
+                let value = window.scrollY
+                stars.style.left = value + 0.25 + 'px'
+                moon.style.top = (value*0.8) + 1.05 + 'px'
+                mountains_behind.style.top = value + 0.2 + 'px'
+                text.style.marginTop = (value*2.2) + 10 + 'px'
+                text.style.marginLeft = (value*-2) + 0.25 + 'px'
+                btn.style.marginTop = (value*1.5) + 1.5 + 'px'});
+
+            ScrollReveal().reveal('.paragrafo', {
+                delay: 100,
+                distance: '50px',
+                duration: 1200,
+                origin: 'bottom',
+                interval: 500,
+                easing: 'cubic-bezier(0.5, 0, 0, 1)',
+                reset: true          
+        });
+        </script>
+    </body>
+</html>
