@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { motion, useReducedMotion, type MotionStyle } from 'motion/react'
+import { m, useReducedMotion, type MotionStyle } from 'motion/react'
 import { createBubbleField } from '../../lib/bubbleField'
 import { sound } from '../../lib/sound'
 
@@ -34,10 +34,10 @@ export function BubbleTitle({ text, style, className = '' }: BubbleTitleProps) {
   }, [reduced, text])
 
   return (
-    <motion.h1 ref={host} style={style} aria-label={text} className={`relative ${className}`}>
+    <m.h1 ref={host} style={style} aria-label={text} className={`relative ${className}`}>
       <span ref={letters} className="bubble-mask block">
         {Array.from(text).map((letter, index) => (
-          <motion.span
+          <m.span
             key={index}
             data-letter=""
             aria-hidden="true"
@@ -47,13 +47,13 @@ export function BubbleTitle({ text, style, className = '' }: BubbleTitleProps) {
             transition={{ duration: 0.8, delay: 0.15 + index * 0.04, ease: [0.16, 1, 0.3, 1] }}
           >
             {letter}
-          </motion.span>
+          </m.span>
         ))}
         <span ref={baseline} aria-hidden="true" className="inline-block h-0 w-0 align-baseline" />
       </span>
       {!reduced && (
         <canvas ref={canvas} aria-hidden="true" className="pointer-events-none absolute top-0 left-0 max-w-none" />
       )}
-    </motion.h1>
+    </m.h1>
   )
 }

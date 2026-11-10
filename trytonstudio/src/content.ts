@@ -305,6 +305,13 @@ export const stepsHint = {
   narrow: 'Toque em um recurso para ver na janela.',
 }
 
+/** Botão de som da navegação (RF-19). O som começa desligado. */
+export const soundToggle = {
+  label: 'Som ambiente',
+  turnOn: 'Ligar o som ambiente',
+  turnOff: 'Desligar o som ambiente',
+}
+
 /** Legenda mostrada embaixo das janelas interativas dos produtos. */
 export const demoHint = 'Demonstração interativa. Experimente os controles.'
 

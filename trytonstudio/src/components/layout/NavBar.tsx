@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
-import { AnimatePresence, motion, useMotionValueEvent, useScroll } from 'motion/react'
-import { navCta, sections } from '../../content'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { AnimatePresence, m, useMotionValueEvent, useScroll } from 'motion/react'
+import { navCta, sections, soundToggle } from '../../content'
+import { sound } from '../../lib/sound'
 import { useActiveSection } from '../../lib/useActiveSection'
 import { Trident } from '../brand/Trident'
 import { ButtonLink } from '../ui/Button'
@@ -19,6 +20,7 @@ export function NavBar() {
   const toggleRef = useRef<HTMLButtonElement>(null)
   const sheetRef = useRef<HTMLDivElement>(null)
   const { scrollY } = useScroll()
+  const soundOn = useSyncExternalStore(sound.subscribe, sound.getSnapshot)
 
   useMotionValueEvent(scrollY, 'change', (value) => setCompact(value > 80))
 
@@ -85,30 +87,47 @@ export function NavBar() {
           ))}
         </ul>
 
-        <div className="hidden md:block">
-          <ButtonLink href="#download" className="!min-h-11 !px-4 text-sm">
-            <Icon name={navCta.icon} className="size-[18px]" />
-            {navCta.short}
-          </ButtonLink>
-        </div>
+        <div className="flex items-center gap-2">
+          {sound.supported && (
+            <button
+              type="button"
+              aria-label={soundToggle.label}
+              aria-pressed={soundOn}
+              title={soundOn ? soundToggle.turnOff : soundToggle.turnOn}
+              onClick={() => void sound.toggle()}
+              className={`acrylic-thin flex size-11 shrink-0 items-center justify-center rounded-[10px] transition-colors duration-150 hover:bg-white/12 ${
+                soundOn ? 'text-lume' : 'text-haze'
+              }`}
+            >
+              <Icon name={soundOn ? 'sound' : 'muted'} />
+            </button>
+          )}
 
-        <button
-          ref={toggleRef}
-          type="button"
-          aria-expanded={open}
-          aria-controls="menu-mobile"
-          aria-label={open ? 'Fechar menu' : 'Abrir menu'}
-          onClick={() => setOpen((value) => !value)}
-          className="acrylic-thin flex size-11 items-center justify-center rounded-[10px] md:hidden"
-        >
-          <Icon name={open ? 'close' : 'menu'} />
-        </button>
+          <div className="hidden md:block">
+            <ButtonLink href="#download" className="!min-h-11 !px-4 text-sm">
+              <Icon name={navCta.icon} className="size-[18px]" />
+              {navCta.short}
+            </ButtonLink>
+          </div>
+
+          <button
+            ref={toggleRef}
+            type="button"
+            aria-expanded={open}
+            aria-controls="menu-mobile"
+            aria-label={open ? 'Fechar menu' : 'Abrir menu'}
+            onClick={() => setOpen((value) => !value)}
+            className="acrylic-thin flex size-11 items-center justify-center rounded-[10px] md:hidden"
+          >
+            <Icon name={open ? 'close' : 'menu'} />
+          </button>
+        </div>
       </nav>
 
       <AnimatePresence>
         {open && (
           <>
-            <motion.div
+            <m.div
               aria-hidden="true"
               className="smoke fixed inset-0 -z-10 md:hidden"
               initial={{ opacity: 0 }}
@@ -116,7 +135,7 @@ export function NavBar() {
               exit={{ opacity: 0 }}
               onClick={() => setOpen(false)}
             />
-            <motion.div
+            <m.div
               ref={sheetRef}
               id="menu-mobile"
               className="acrylic mx-auto mt-2 flex max-w-[1200px] flex-col gap-1 rounded-2xl p-2 md:hidden"
@@ -142,7 +161,7 @@ export function NavBar() {
                 <Icon name={navCta.icon} className="size-[18px]" />
                 {navCta.long}
               </ButtonLink>
-            </motion.div>
+            </m.div>
           </>
         )}
       </AnimatePresence>

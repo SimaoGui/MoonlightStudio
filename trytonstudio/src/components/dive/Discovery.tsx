@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { motion, useScroll, useTransform } from 'motion/react'
+import { m, useScroll, useTransform } from 'motion/react'
 import { formatDepth, zoneAt, type Discovery as DiscoveryItem } from '../../content'
 import { useParallax } from '../../lib/parallax'
 import { Reveal } from '../ui/Reveal'
@@ -46,7 +46,7 @@ export function Discovery({ item, side = 'left' }: DiscoveryProps) {
       </p>
 
       <div className="mt-[clamp(1.25rem,3vw,2.5rem)] grid items-center gap-x-12 gap-y-6 md:grid-cols-2">
-        <motion.div
+        <m.div
           aria-hidden="true"
           style={{ x, y }}
           className={`flex justify-center will-change-transform ${side === 'right' ? 'md:order-2' : ''}`}
@@ -55,7 +55,7 @@ export function Discovery({ item, side = 'left' }: DiscoveryProps) {
             id={item.creature}
             className={`h-auto w-[min(100%,26rem)] ${item.creature === 'wreck' ? '' : 'animate-float'}`}
           />
-        </motion.div>
+        </m.div>
 
         <Reveal className={side === 'right' ? 'md:order-1 md:justify-self-end' : ''}>
           <div className="acrylic-thin flex max-w-md flex-col gap-2.5 rounded-card p-6 sm:p-7">

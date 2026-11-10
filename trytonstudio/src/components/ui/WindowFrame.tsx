@@ -1,5 +1,5 @@
 import { useRef, type ReactNode } from 'react'
-import { motion } from 'motion/react'
+import { m } from 'motion/react'
 import { demoHint } from '../../content'
 import { useFloat } from '../../lib/parallax'
 import { useTilt } from '../../lib/useTilt'
@@ -30,7 +30,7 @@ export function WindowFrame({ title, icon, restTilt = 0, children }: WindowFrame
 
   return (
     <div ref={ref} className="min-w-0 [perspective:1400px]">
-      <motion.div
+      <m.div
         role="group"
         aria-label={`Demonstração interativa do ${title}`}
         onPointerMove={onPointerMove}
@@ -60,7 +60,7 @@ export function WindowFrame({ title, icon, restTilt = 0, children }: WindowFrame
           </div>
         </div>
         {children}
-      </motion.div>
+      </m.div>
       <p className="mt-4 flex items-center justify-center gap-2 text-[13px] text-haze">
         <Icon name="pointer" className="size-4 text-tide-200" />
         {demoHint}

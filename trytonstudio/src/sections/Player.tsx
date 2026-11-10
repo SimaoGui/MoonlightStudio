@@ -1,5 +1,5 @@
 import { useEffect, useImperativeHandle, useRef, useState, type CSSProperties, type Ref } from 'react'
-import { motion, useInView } from 'motion/react'
+import { m, useInView } from 'motion/react'
 import { ButtonLink } from '../components/ui/Button'
 import { FeatureSteps, type DemoHandle } from '../components/ui/FeatureSteps'
 import { pinnedDemo, revealDemo } from '../lib/demo'
@@ -39,7 +39,7 @@ function Fish({ className = '' }: { className?: string }) {
 /** The "video": a small animated ocean scene that only moves while playing. */
 function Scene({ kind, running }: { kind: SceneKind; running: boolean }) {
   return (
-    <motion.div
+    <m.div
       key={kind}
       aria-hidden="true"
       initial={{ opacity: 0 }}
@@ -107,7 +107,7 @@ function Scene({ kind, running }: { kind: SceneKind; running: boolean }) {
           </svg>
         </>
       )}
-    </motion.div>
+    </m.div>
   )
 }
 

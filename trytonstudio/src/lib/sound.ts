@@ -101,6 +101,7 @@ class OceanSound {
   private listeners = new Set<Listener>()
   private depth = 0
   private blipTimer = 0
+  private watching = false
   enabled = false
 
   subscribe = (listener: Listener) => {
@@ -124,6 +125,15 @@ class OceanSound {
     if (!this.supported || this.enabled) return
     this.graph ??= buildGraph()
     const { ctx, master } = this.graph
+    if (!this.watching) {
+      // No sound from a tab nobody is looking at.
+      this.watching = true
+      document.addEventListener('visibilitychange', () => {
+        if (!this.enabled) return
+        if (document.hidden) void ctx.suspend()
+        else void ctx.resume()
+      })
+    }
     await ctx.resume()
     master.gain.cancelScheduledValues(ctx.currentTime)
     master.gain.setTargetAtTime(0.55, ctx.currentTime, 0.6)
