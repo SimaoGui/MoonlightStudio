@@ -61,7 +61,7 @@ export function WindowFrame({ title, icon, restTilt = 0, children }: WindowFrame
         </div>
         {children}
       </motion.div>
-      <p className="mt-4 flex items-center justify-center gap-2 text-[13px] text-fog">
+      <p className="mt-4 flex items-center justify-center gap-2 text-[13px] text-haze">
         <Icon name="pointer" className="size-4 text-tide-200" />
         {demoHint}
       </p>
