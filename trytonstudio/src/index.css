@@ -1,0 +1,265 @@
+@import 'tailwindcss';
+
+/* ------------------------------------------------------------------ *
+ * Neo/Windows Glass design tokens
+ * Colours come from the trident icon (#74c4d6 at the top, #121f38 at the
+ * base). Every token below becomes a Tailwind utility (bg-abyss-900,
+ * text-tide-200, font-display, rounded-card, shadow-window...).
+ * ------------------------------------------------------------------ */
+@theme {
+  --color-abyss-950: #040915;
+  --color-abyss-900: #08142a;
+  --color-abyss-800: #121f38;
+  --color-abyss-700: #1a3050;
+  --color-shallow: #123a5a;
+
+  --color-tide-500: #41758f;
+  --color-tide-400: #548ba2;
+  --color-tide-300: #67b1c4;
+  --color-tide-200: #8fd3e0;
+
+  --color-foam-50: #eefafc;
+  --color-mist: #d3e3ea;
+  --color-haze: #b7c9d4;
+  --color-fog: #8ea4b3;
+  --color-ink: #04101f;
+
+  --color-lume: #5ff2e0;
+  --color-coral: #ff7d6b;
+
+  --font-display: 'Sora Variable', 'Sora', system-ui, sans-serif;
+  --font-sans:
+    'Segoe UI Variable Text', 'Segoe UI', 'Inter Variable', 'Inter', system-ui, sans-serif;
+  --font-mono: 'Cascadia Code', 'Cascadia Mono', ui-monospace, Consolas, monospace;
+
+  --radius-control: 8px;
+  --radius-window: 12px;
+  --radius-card: 20px;
+
+  --shadow-card: inset 0 1px 0 rgb(255 255 255 / 0.12), 0 8px 32px rgb(0 0 0 / 0.28);
+  --shadow-window:
+    0 32px 80px rgb(0 0 0 / 0.45), 0 0 0 1px rgb(95 242 224 / 0.04),
+    0 0 80px rgb(95 242 224 / 0.06);
+  --shadow-accent: 0 8px 28px rgb(103 177 196 / 0.35);
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --animate-wave: wave var(--wave-duration, 24s) linear infinite;
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-rise: rise var(--rise-duration, 14s) linear infinite;
+  --animate-swim: swim var(--swim-duration, 18s) linear infinite;
+  --animate-sway: sway 9s ease-in-out infinite;
+  --animate-pulse-dot: pulse-dot 1.6s ease-in-out infinite;
+  --animate-cursor: cursor 8s ease-in-out infinite;
+
+  @keyframes wave {
+    to {
+      transform: translate3d(-50%, 0, 0);
+    }
+  }
+  @keyframes float {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+    50% {
+      transform: translate3d(0, -10px, 0);
+    }
+  }
+  @keyframes rise {
+    0% {
+      transform: translate3d(0, 0, 0) scale(0.6);
+      opacity: 0;
+    }
+    15% {
+      opacity: 1;
+    }
+    100% {
+      transform: translate3d(var(--rise-x, 12px), -420px, 0) scale(1);
+      opacity: 0;
+    }
+  }
+  @keyframes swim {
+    from {
+      transform: translate3d(-20%, 0, 0);
+    }
+    to {
+      transform: translate3d(120%, 0, 0);
+    }
+  }
+  @keyframes sway {
+    0%,
+    100% {
+      transform: skewX(-16deg) translate3d(-10px, 0, 0);
+    }
+    50% {
+      transform: skewX(-12deg) translate3d(14px, 0, 0);
+    }
+  }
+  @keyframes cursor {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+    30% {
+      transform: translate3d(90px, 34px, 0);
+    }
+    55% {
+      transform: translate3d(40px, 78px, 0);
+    }
+    80% {
+      transform: translate3d(140px, 10px, 0);
+    }
+  }
+  @keyframes pulse-dot {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.35;
+    }
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    color-scheme: dark;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-abyss-950);
+    color: var(--color-foam-50);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.6;
+    overflow-x: clip;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  section[id] {
+    scroll-margin-top: 5.5rem;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-lume);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  ::selection {
+    background: rgb(95 242 224 / 0.3);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Materials. Same roles as Windows 11: Mica is the opaque base of a
+ * window, Acrylic is the frosted glass of floating surfaces, Smoke dims
+ * what sits behind a modal sheet.
+ * ------------------------------------------------------------------ */
+@layer components {
+  .mica {
+    background: rgb(18 31 56 / 0.82);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border: 1px solid rgb(255 255 255 / 0.08);
+  }
+
+  .acrylic {
+    background-color: rgb(26 48 80 / 0.58);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    backdrop-filter: blur(28px) saturate(160%);
+    -webkit-backdrop-filter: blur(28px) saturate(160%);
+    border: 1px solid rgb(255 255 255 / 0.14);
+    box-shadow: var(--shadow-card);
+  }
+
+  .acrylic-thin {
+    background: rgb(255 255 255 / 0.07);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgb(255 255 255 / 0.12);
+  }
+
+  .smoke {
+    background: rgb(4 9 21 / 0.64);
+  }
+
+  /* Soft highlight that follows the pointer inside glass cards. */
+  .glow-follow {
+    position: relative;
+    isolation: isolate;
+  }
+  .glow-follow::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: radial-gradient(
+      420px circle at var(--mx, 50%) var(--my, 0%),
+      rgb(143 211 224 / 0.16),
+      transparent 60%
+    );
+    opacity: 0;
+    transition: opacity 300ms ease;
+    pointer-events: none;
+  }
+  .glow-follow:hover::before {
+    opacity: 1;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+}
+
+/* Solid fallbacks: no backdrop-filter support, or the user asked for less
+ * transparency or more contrast (RNF-04). */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .mica,
+  .acrylic {
+    background: var(--color-abyss-800);
+  }
+  .acrylic-thin {
+    background: var(--color-abyss-700);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .mica,
+  .acrylic,
+  .acrylic-thin {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: var(--color-abyss-800);
+    border-color: rgb(255 255 255 / 0.32);
+  }
+  .smoke {
+    background: var(--color-abyss-950);
+  }
+}
+
+/* Reduced motion (RNF-03): no looping animation, no smooth scrolling. The
+ * scroll and pointer parallax is switched off in JavaScript (lib/parallax). */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .motion-decor {
+    display: none !important;
+  }
+}
