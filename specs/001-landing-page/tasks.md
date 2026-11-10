@@ -45,7 +45,7 @@
 
 ## Verificação
 
-- [x] Teste de aceite automatizado em `trytonstudio/scripts/verify.mjs`: 45 verificações
+- [x] Teste de aceite automatizado em `trytonstudio/scripts/verify.mjs`: 45 verificações nesta entrega, 96 depois da spec 002
 - [x] Larguras de 320, 390, 768, 1024, 1366, 1440, 1920 e 2560 px sem scroll horizontal e sem texto cortado (RNF-01)
 - [x] axe-core sem violações em desktop e celular (WCAG 2.2 AA e boas práticas)
 - [x] Contraste dos tokens de texto calculado contra a superfície mais clara de cada material (RNF-05)
@@ -79,12 +79,15 @@ Sugestões para depois desta entrega, em ordem de prioridade. O detalhe e as ref
 
 ### Imersão
 
-- [ ] Descobertas ao longo do mergulho: criaturas, fatos e zonas do oceano em profundidades reais
-- [ ] Seção fixa por produto em que o scroll conduz a demonstração, recurso por recurso
-- [ ] Travessia da superfície: a linha d'água passa pela tela inteira quando o visitante sai do hero
-- [ ] Lanterna no abismo: o ponteiro ilumina o fundo e revela bioluminescência nos 4.000 m
-- [ ] Hero em WebGL com água e tridente em 3D, carregado depois do primeiro paint, com a cena em SVG como alternativa
-- [ ] Som ambiente opcional, desligado por padrão
+Entregue na spec 002 (`specs/002-imersao/`), junto com o título do hero que vira bolhas.
+
+- [x] Descobertas ao longo do mergulho: criaturas, fatos e zonas do oceano em profundidades reais
+- [x] Seção fixa por produto em que o scroll conduz a demonstração, recurso por recurso
+- [x] Travessia da superfície: a linha d'água passa pela tela inteira quando o visitante sai do hero
+- [x] Lanterna no abismo: o ponteiro ilumina o fundo e revela bioluminescência nos 4.000 m
+- [x] Tridente do hero em 3D (WebGL), carregado depois do primeiro paint, com o SVG como alternativa
+- [x] Som ambiente opcional, desligado por padrão
+- [ ] Água em WebGL no hero (as ondas continuam em SVG)
 
 ### Engenharia
 
