@@ -7,4 +7,10 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   base: './',
   plugins: [react(), tailwindcss()],
+  build: {
+    // The only chunk above the default 500 kB is the 3D trident (three.js). It
+    // is downloaded on demand, after the first paint, and only on devices that
+    // will draw it (RF-20, RNF-09). `npm run verify` checks the initial bundle.
+    chunkSizeWarningLimit: 640,
+  },
 })

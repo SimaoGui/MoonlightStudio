@@ -21,6 +21,93 @@ export const sections: { id: SectionId; label: string; depth: number; inNav: boo
   { id: 'download', label: 'Download', depth: 4000, inNav: false },
 ]
 
+export type CreatureId = 'turtle' | 'squid' | 'angler' | 'whale' | 'wreck'
+
+export type Discovery = {
+  id: string
+  depth: number
+  creature: CreatureId
+  title: string
+  fact: string
+  source: { label: string; href: string }
+}
+
+const noaaLayers = {
+  label: 'NOAA, Layers of the Ocean',
+  href: 'https://noaa.gov/jetstream/ocean/layers-of-ocean',
+}
+
+/**
+ * Descobertas do mergulho (RF-14): uma criatura ou um fato da profundidade real, entre as seções.
+ * Cada fato tem fonte. Ao trocar um texto, confira a fonte e mantenha as profundidades em ordem.
+ */
+export const discoveries: Discovery[] = [
+  {
+    id: 'descoberta-luz',
+    depth: 120,
+    creature: 'turtle',
+    title: 'Ainda dá para ver o sol',
+    fact: 'Quase toda a luz visível do oceano fica nos primeiros 200 m. Daqui para baixo, o azul escurece a cada metro.',
+    source: noaaLayers,
+  },
+  {
+    id: 'descoberta-lula',
+    depth: 630,
+    creature: 'squid',
+    title: 'Lula-gigante',
+    fact: 'Ela só foi filmada viva no próprio habitat em julho de 2012, a cerca de 630 m de profundidade.',
+    source: { label: 'Phys.org', href: 'https://phys.org/news276754904.html' },
+  },
+  {
+    id: 'descoberta-pescador',
+    depth: 1500,
+    creature: 'angler',
+    title: 'Peixe-pescador',
+    fact: 'Na zona da meia-noite, a única luz é a que os animais produzem. A isca deste aqui brilha em azul por causa das bactérias que vivem nela.',
+    source: { label: 'Smithsonian Ocean', href: 'https://ocean.si.edu/node/111009' },
+  },
+  {
+    id: 'descoberta-cachalote',
+    depth: 2000,
+    creature: 'whale',
+    title: 'Cachalote',
+    fact: 'Respira na superfície e mergulha até a zona da meia-noite em busca de comida.',
+    source: noaaLayers,
+  },
+  {
+    id: 'descoberta-titanic',
+    depth: 3800,
+    creature: 'wreck',
+    title: 'Titanic',
+    fact: 'Os destroços do navio repousam a cerca de 3.800 m, no fundo do Atlântico Norte.',
+    source: { label: 'NOAA Ocean Exploration', href: 'https://oceanexplorer.noaa.gov/?p=13754' },
+  },
+]
+
+/** Zonas do oceano mostradas no medidor (RF-15). `from` é a profundidade em que a zona começa. */
+export const zones = [
+  { from: 0, name: 'Superfície' },
+  { from: 1, name: 'Zona da luz do sol' },
+  { from: 200, name: 'Zona crepuscular' },
+  { from: 1000, name: 'Zona da meia-noite' },
+  { from: 4000, name: 'Zona abissal' },
+] as const
+
+export function zoneAt(meters: number): string {
+  let name: string = zones[0].name
+  for (const zone of zones) if (Math.round(meters) >= zone.from) name = zone.name
+  return name
+}
+
+/** O que a lanterna revela no fundo (RF-18). */
+export const abyss = {
+  hint: 'Mova o ponteiro para iluminar o fundo.',
+  hintTouch: 'Toque no escuro para iluminar o fundo.',
+  fact: 'A 4.000 m a pressão passa de 5.850 psi: umas 400 vezes a da superfície.',
+  source: noaaLayers,
+  mark: 'Três amigos chegaram até aqui.',
+}
+
 export const links: { playerDownload: string | null; screensDownload: string | null; github: string } = {
   // PENDENTE: colocar aqui o link real de cada instalador (releases, site ou Microsoft Store).
   // Enquanto o valor for `null`, o card de download mostra "Download em breve" em vez de um
@@ -109,6 +196,7 @@ export const player = {
     { title: 'Fossa Abissal', file: 'Fossa Abissal.mp4', seconds: 36, scene: 'abyss' },
   ] as const,
   caption: 'A luz do sol alcança os primeiros duzentos metros.',
+  library: { folder: 'Vídeos › Oceano', search: 'Buscar na biblioteca', empty: 'Nenhum vídeo com esse nome.' },
 }
 
 export const screens = {
@@ -136,6 +224,8 @@ export const screens = {
     },
   ] satisfies Feature[],
   room: 'Sala do trio',
+  invite: { idle: 'Convidar', done: 'Convite copiado' },
+  systemAudio: 'Som do sistema',
   sources: [
     { id: 'tela', label: 'Tela inteira' },
     { id: 'janela', label: 'Janela' },
@@ -207,6 +297,19 @@ export const download = {
   cta: 'Baixar para Windows',
   soon: 'Download em breve',
   soonNote: 'Acompanhe o lançamento no GitHub',
+}
+
+/** Aviso acima dos recursos de cada produto: o scroll ou o toque conduz a janela (RF-16). */
+export const stepsHint = {
+  wide: 'Role a página: a janela acompanha cada recurso.',
+  narrow: 'Toque em um recurso para ver na janela.',
+}
+
+/** Botão de som da navegação (RF-19). O som começa desligado. */
+export const soundToggle = {
+  label: 'Som ambiente',
+  turnOn: 'Ligar o som ambiente',
+  turnOff: 'Desligar o som ambiente',
 }
 
 /** Legenda mostrada embaixo das janelas interativas dos produtos. */

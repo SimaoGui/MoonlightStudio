@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { motion, useReducedMotion } from 'motion/react'
+import { m, useReducedMotion } from 'motion/react'
 
 type RevealProps = {
   children: ReactNode
@@ -12,7 +12,7 @@ type RevealProps = {
 export function Reveal({ children, className, delay = 0 }: RevealProps) {
   const reduced = useReducedMotion()
   return (
-    <motion.div
+    <m.div
       className={className}
       initial={{ opacity: 0, y: reduced ? 0 : 24 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -20,6 +20,6 @@ export function Reveal({ children, className, delay = 0 }: RevealProps) {
       transition={{ duration: 0.5, delay, ease: [0.16, 1, 0.3, 1] }}
     >
       {children}
-    </motion.div>
+    </m.div>
   )
 }

@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
-import { motion, useReducedMotion, useTransform } from 'motion/react'
-import { Trident } from '../components/brand/Trident'
+import { m, useTransform } from 'motion/react'
+import { BubbleTitle } from '../components/hero/BubbleTitle'
+import { HeroTrident } from '../components/hero/HeroTrident'
 import { ButtonLink } from '../components/ui/Button'
 import { Icon } from '../components/ui/Icon'
 import { hero } from '../content'
@@ -54,13 +55,10 @@ const waveBox = 'inset-x-[-60px] bottom-[-64px] h-[calc(var(--wave-h)+64px)] z-2
  * fastest layer: it sinks behind the front waves while the page scrolls.
  */
 export function Hero() {
-  const reduced = useReducedMotion()
   const { scroll, intensity } = useParallax()
   const title = useLayerMotion({ speed: 1.15, pointer: -8 })
   const copy = useLayerMotion({ speed: 0.92, pointer: -5 })
   const copyOpacity = useTransform(() => 1 - Math.min(1, scroll.get() / 460) * Math.min(1, intensity.get() * 4))
-
-  const letters = Array.from(hero.title)
 
   return (
     <section
@@ -100,42 +98,26 @@ export function Hero() {
       {/* 4. The trident rising from the sea */}
       <Layer speed={0.35} pointer={22} className="inset-0">
         <div className="absolute top-[max(9%,5rem)] left-1/2 aspect-square h-[58%] max-h-[96vw] -translate-x-1/2">
-          <Trident
-            tone="gradient"
-            className="size-full animate-float drop-shadow-[0_0_48px_rgb(95_242_224/0.28)]"
-          />
+          <HeroTrident />
         </div>
       </Layer>
 
       {/* 5. Title and copy: the fastest layers */}
       <div className="absolute inset-x-0 bottom-[calc(var(--wave-h)+clamp(0.75rem,3svh,2rem))] z-10 flex flex-col items-center gap-[clamp(0.75rem,2.2svh,1.25rem)] px-5 text-center">
-        <motion.p
+        <m.p
           style={{ ...copy, opacity: copyOpacity }}
           className="eyebrow rounded-full border border-white/12 bg-abyss-950/50 px-4 py-1.5 text-[0.6875rem] text-tide-200 backdrop-blur-md sm:text-xs"
         >
           {hero.overline}
-        </motion.p>
+        </m.p>
 
-        <motion.h1
+        <BubbleTitle
+          text={hero.title}
           style={title}
-          aria-label={hero.title}
           className="font-display text-[clamp(2.25rem,min(11.5vw,14svh),7.75rem)] leading-[0.95] font-semibold tracking-[-0.04em] [text-shadow:0_8px_48px_rgb(4_9_21/0.7)]"
-        >
-          {letters.map((letter, index) => (
-            <motion.span
-              key={index}
-              aria-hidden="true"
-              className="inline-block"
-              initial={{ opacity: 0, y: reduced ? 0 : 48 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.15 + index * 0.04, ease: [0.16, 1, 0.3, 1] }}
-            >
-              {letter}
-            </motion.span>
-          ))}
-        </motion.h1>
+        />
 
-        <motion.div
+        <m.div
           style={{ ...copy, opacity: copyOpacity }}
           className="flex flex-col items-center gap-[clamp(1rem,2.6svh,1.75rem)]"
         >
@@ -151,7 +133,7 @@ export function Hero() {
               {hero.secondaryCta}
             </ButtonLink>
           </div>
-        </motion.div>
+        </m.div>
       </div>
 
       {/* 6 to 8. Three strips of waves. The front one scrolls with the page and covers the title */}

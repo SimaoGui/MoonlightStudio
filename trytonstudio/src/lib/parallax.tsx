@@ -8,7 +8,7 @@ import {
   type RefObject,
 } from 'react'
 import {
-  motion,
+  m,
   useMotionValue,
   useReducedMotion,
   useScroll,
@@ -120,13 +120,13 @@ type LayerProps = LayerMotion & {
 export function Layer({ className = '', style, children, ...layerMotion }: LayerProps) {
   const { x, y } = useLayerMotion(layerMotion)
   return (
-    <motion.div
+    <m.div
       aria-hidden="true"
       className={`pointer-events-none absolute will-change-transform ${className}`}
       style={{ ...style, x, y }}
     >
       {children}
-    </motion.div>
+    </m.div>
   )
 }
 

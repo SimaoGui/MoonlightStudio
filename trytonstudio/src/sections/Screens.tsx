@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useImperativeHandle, useRef, useState, type Ref } from 'react'
 import { useInView } from 'motion/react'
 import { ButtonLink } from '../components/ui/Button'
 import { Chip } from '../components/ui/Chip'
-import { FeatureList } from '../components/ui/FeatureList'
+import { FeatureSteps, type DemoHandle } from '../components/ui/FeatureSteps'
 import { Icon } from '../components/ui/Icon'
 import { SectionHeading } from '../components/ui/SectionHeading'
 import { WindowFrame } from '../components/ui/WindowFrame'
 import { screens } from '../content'
+import { pinnedDemo, revealDemo } from '../lib/demo'
 
 type SourceId = (typeof screens.sources)[number]['id']
 
@@ -24,7 +25,7 @@ const codeLines = [
 ]
 
 /** The fake desktop being shared, with one overlay per source (screen, window, region). */
-function SharedDesktop({ sharing, source }: { sharing: boolean; source: SourceId }) {
+function SharedDesktop({ sharing, source, audio }: { sharing: boolean; source: SourceId; audio: boolean }) {
   const sourceLabel = screens.sources.find((item) => item.id === source)?.label
   return (
     <div className="relative aspect-video min-w-0 flex-1 overflow-hidden bg-[linear-gradient(140deg,#1d5478_0%,#123a5a_40%,#0a1d38_100%)] sm:aspect-auto sm:min-h-[290px]">
@@ -82,6 +83,21 @@ function SharedDesktop({ sharing, source }: { sharing: boolean; source: SourceId
         )}
       </div>
 
+      {sharing && audio && (
+        <p className="absolute top-3 right-3 z-[4] flex items-center gap-2 rounded-md bg-abyss-950/80 px-2.5 py-1 text-xs text-lume">
+          <span aria-hidden="true" className="flex h-3 items-end gap-[2px]">
+            {[0, 1, 2, 3].map((bar) => (
+              <span
+                key={bar}
+                className="h-full w-[3px] origin-bottom animate-eq rounded-full bg-lume"
+                style={{ animationDelay: `${-bar * 0.23}s` }}
+              />
+            ))}
+          </span>
+          {screens.systemAudio}
+        </p>
+      )}
+
       {sharing ? (
         <p className="absolute bottom-[12%] left-3 z-[4] rounded-md bg-abyss-950/80 px-2.5 py-1 text-xs">
           Você está compartilhando · {sourceLabel}
@@ -97,14 +113,68 @@ function SharedDesktop({ sharing, source }: { sharing: boolean; source: SourceId
   )
 }
 
-/** Interactive mock of a TrytonScreens room (RF-07). */
-function ScreensWindow() {
+type Spot = 'invite' | 'source' | 'audio'
+
+const spotRing = 'shadow-[0_0_0_1.5px_var(--color-lume),0_0_24px_rgb(95_242_224/0.3)]'
+
+/**
+ * Interactive mock of a TrytonScreens room (RF-07). `applyStep` puts it in the
+ * state of one feature (RF-16).
+ */
+function ScreensWindow({ ref }: { ref: Ref<DemoHandle> }) {
   const container = useRef<HTMLDivElement>(null)
   const inView = useInView(container, { amount: 0.35 })
   const [sharing, setSharing] = useState(true)
   const [source, setSource] = useState<SourceId>('tela')
   const [mic, setMic] = useState(true)
+  const [systemAudio, setSystemAudio] = useState(false)
+  const [copied, setCopied] = useState(false)
   const [seconds, setSeconds] = useState(12)
+  // Part of the window that a feature step has just changed, outlined for a moment.
+  const [spot, setSpot] = useState<Spot | null>(null)
+  const spotTimer = useRef(0)
+  const copyTimer = useRef(0)
+
+  const invite = () => {
+    setCopied(true)
+    window.clearTimeout(copyTimer.current)
+    copyTimer.current = window.setTimeout(() => setCopied(false), 2600)
+  }
+
+  useImperativeHandle(ref, () => {
+    const flash = (part: Spot) => {
+      setSpot(part)
+      window.clearTimeout(spotTimer.current)
+      spotTimer.current = window.setTimeout(() => setSpot(null), 2600)
+    }
+    return {
+      applyStep(index) {
+        setSharing(true)
+        if (index === 0) {
+          // Sala em um clique
+          setSource('tela')
+          invite()
+          flash('invite')
+        } else if (index === 1) {
+          // Tela, janela ou região
+          setSource('regiao')
+          flash('source')
+        } else {
+          // Som do sistema junto
+          setSystemAudio(true)
+          flash('audio')
+        }
+      },
+    }
+  }, [])
+
+  useEffect(
+    () => () => {
+      window.clearTimeout(spotTimer.current)
+      window.clearTimeout(copyTimer.current)
+    },
+    [],
+  )
 
   useEffect(() => {
     if (!sharing || !inView) return
@@ -130,10 +200,20 @@ function ScreensWindow() {
             </span>
           )}
           <span className="ml-auto text-fog">{screens.people.length} na sala</span>
+          <button
+            type="button"
+            onClick={invite}
+            className={`flex min-h-11 items-center gap-1.5 rounded-control border border-white/12 bg-white/6 px-3 text-xs transition duration-300 hover:bg-white/12 ${
+              copied ? 'text-lume' : 'text-foam-50'
+            } ${spot === 'invite' ? spotRing : ''}`}
+          >
+            <Icon name={copied ? 'check' : 'link'} className="size-4" />
+            <span aria-live="polite">{copied ? screens.invite.done : screens.invite.idle}</span>
+          </button>
         </div>
 
         <div className="flex flex-col sm:flex-row">
-          <SharedDesktop sharing={sharing} source={source} />
+          <SharedDesktop sharing={sharing} source={source} audio={systemAudio} />
 
           <ul className="flex shrink-0 gap-2 border-t border-white/6 p-2.5 text-[13px] sm:w-[156px] sm:flex-col sm:border-t-0 sm:border-l">
             {screens.people.map((person, index) => {
@@ -181,7 +261,22 @@ function ScreensWindow() {
           >
             <Icon name={mic ? 'mic' : 'micOff'} />
           </button>
-          <div role="group" aria-label="O que compartilhar" className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            aria-label={screens.systemAudio}
+            aria-pressed={systemAudio}
+            onClick={() => setSystemAudio((value) => !value)}
+            className={`acrylic-thin flex size-11 shrink-0 items-center justify-center rounded-[10px] transition duration-300 hover:bg-white/12 active:scale-95 ${
+              systemAudio ? 'text-lume' : 'text-foam-50'
+            } ${spot === 'audio' ? spotRing : ''}`}
+          >
+            <Icon name={systemAudio ? 'sound' : 'muted'} />
+          </button>
+          <div
+            role="group"
+            aria-label="O que compartilhar"
+            className={`flex flex-wrap gap-2 rounded-full transition-shadow duration-300 ${spot === 'source' ? spotRing : ''}`}
+          >
             {screens.sources.map((item) => (
               <Chip key={item.id} active={source === item.id} onClick={() => setSource(item.id)}>
                 {item.label}
@@ -205,24 +300,39 @@ function ScreensWindow() {
   )
 }
 
-/** 1.000 m. TrytonScreens, screen sharing. */
+/**
+ * 1.000 m. TrytonScreens, screen sharing. From 1024 px the window is pinned
+ * while the three features scroll past and drive it (RF-16).
+ */
 export function Screens() {
+  const demo = useRef<DemoHandle>(null)
+  const frame = useRef<HTMLDivElement>(null)
+
+  const onStep = (index: number) => {
+    demo.current?.applyStep(index)
+    revealDemo(frame.current)
+  }
+
   return (
     <section
       id="screens"
-      className="relative mx-auto grid max-w-[1200px] grid-cols-[minmax(0,1fr)] items-center gap-12 px-5 py-[clamp(3.5rem,8vw,6rem)] sm:px-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] lg:gap-14"
+      className="relative mx-auto grid max-w-[1200px] grid-cols-[minmax(0,1fr)] gap-y-8 px-5 py-[clamp(3.5rem,8vw,6rem)] [grid-template-areas:'head'_'demo'_'steps'_'cta'] sm:px-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] lg:gap-x-14 lg:gap-y-4 lg:[grid-template-areas:'demo_head'_'demo_steps'_'demo_cta']"
     >
-      <div className="flex min-w-0 flex-col gap-5 lg:order-2">
+      <div className="min-w-0 [grid-area:head]">
         <SectionHeading depth={1000} overline={screens.overline} title={screens.title} lead={screens.lead} />
-        <FeatureList items={screens.features} />
-        <div className="mt-3">
-          <ButtonLink href={screens.cta.href} aria-label={`${screens.cta.label}: ${screens.name}`}>
-            <Icon name={screens.cta.icon} className="size-[18px]" />
-            {screens.cta.label}
-          </ButtonLink>
-        </div>
       </div>
-      <ScreensWindow />
+      <div ref={frame} className={pinnedDemo}>
+        <ScreensWindow ref={demo} />
+      </div>
+      <div className="min-w-0 [grid-area:steps]">
+        <FeatureSteps items={screens.features} product={screens.name} onStep={onStep} />
+      </div>
+      <div className="[grid-area:cta]">
+        <ButtonLink href={screens.cta.href} aria-label={`${screens.cta.label}: ${screens.name}`}>
+          <Icon name={screens.cta.icon} className="size-[18px]" />
+          {screens.cta.label}
+        </ButtonLink>
+      </div>
     </section>
   )
 }
