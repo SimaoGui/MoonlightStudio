@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
-import { motion, useReducedMotion, useTransform } from 'motion/react'
+import { motion, useTransform } from 'motion/react'
 import { Trident } from '../components/brand/Trident'
+import { BubbleTitle } from '../components/hero/BubbleTitle'
 import { ButtonLink } from '../components/ui/Button'
 import { Icon } from '../components/ui/Icon'
 import { hero } from '../content'
@@ -54,13 +55,10 @@ const waveBox = 'inset-x-[-60px] bottom-[-64px] h-[calc(var(--wave-h)+64px)] z-2
  * fastest layer: it sinks behind the front waves while the page scrolls.
  */
 export function Hero() {
-  const reduced = useReducedMotion()
   const { scroll, intensity } = useParallax()
   const title = useLayerMotion({ speed: 1.15, pointer: -8 })
   const copy = useLayerMotion({ speed: 0.92, pointer: -5 })
   const copyOpacity = useTransform(() => 1 - Math.min(1, scroll.get() / 460) * Math.min(1, intensity.get() * 4))
-
-  const letters = Array.from(hero.title)
 
   return (
     <section
@@ -116,24 +114,11 @@ export function Hero() {
           {hero.overline}
         </motion.p>
 
-        <motion.h1
+        <BubbleTitle
+          text={hero.title}
           style={title}
-          aria-label={hero.title}
           className="font-display text-[clamp(2.25rem,min(11.5vw,14svh),7.75rem)] leading-[0.95] font-semibold tracking-[-0.04em] [text-shadow:0_8px_48px_rgb(4_9_21/0.7)]"
-        >
-          {letters.map((letter, index) => (
-            <motion.span
-              key={index}
-              aria-hidden="true"
-              className="inline-block"
-              initial={{ opacity: 0, y: reduced ? 0 : 48 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.15 + index * 0.04, ease: [0.16, 1, 0.3, 1] }}
-            >
-              {letter}
-            </motion.span>
-          ))}
-        </motion.h1>
+        />
 
         <motion.div
           style={{ ...copy, opacity: copyOpacity }}

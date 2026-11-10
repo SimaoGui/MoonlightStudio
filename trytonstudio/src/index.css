@@ -212,6 +212,23 @@
     opacity: 1;
   }
 
+  /* Hero title (RF-13): the bubble field opens a round hole in the text around
+   * the pointer. The padding keeps the text shadow inside the masked box. */
+  .bubble-mask {
+    margin: -0.5em;
+    padding: 0.5em;
+    -webkit-mask-image: radial-gradient(
+      circle at var(--bx, 50%) var(--by, 50%),
+      transparent calc(var(--br, 0px) * 0.7),
+      black var(--br, 0px)
+    );
+    mask-image: radial-gradient(
+      circle at var(--bx, 50%) var(--by, 50%),
+      transparent calc(var(--br, 0px) * 0.7),
+      black var(--br, 0px)
+    );
+  }
+
   .eyebrow {
     font-family: var(--font-mono);
     font-size: 0.75rem;
