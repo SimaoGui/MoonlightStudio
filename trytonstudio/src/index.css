@@ -51,6 +51,10 @@
   --animate-sway: sway 9s ease-in-out infinite;
   --animate-pulse-dot: pulse-dot 1.6s ease-in-out infinite;
   --animate-cursor: cursor 8s ease-in-out infinite;
+  --animate-eq: eq 0.7s ease-in-out infinite alternate;
+  --animate-crossing-sheet: crossing-sheet 1.15s cubic-bezier(0.45, 0, 0.3, 1) both;
+  --animate-crossing-bubble: crossing-bubble 1.2s cubic-bezier(0.3, 0, 0.5, 1) both;
+  --animate-blink: blink 5.5s ease-in-out infinite;
 
   @keyframes wave {
     to {
@@ -109,6 +113,49 @@
     }
     80% {
       transform: translate3d(140px, 10px, 0);
+    }
+  }
+  @keyframes crossing-sheet {
+    from {
+      transform: translate3d(0, 105vh, 0);
+    }
+    to {
+      transform: translate3d(0, -75vh, 0);
+    }
+  }
+  @keyframes crossing-bubble {
+    0% {
+      transform: translate3d(0, 0, 0) scale(0.7);
+      opacity: 0;
+    }
+    12% {
+      opacity: 1;
+    }
+    80% {
+      opacity: 0.9;
+    }
+    100% {
+      transform: translate3d(var(--rise-x, 0px), -125vh, 0) scale(1.1);
+      opacity: 0;
+    }
+  }
+  @keyframes blink {
+    0%,
+    44%,
+    52%,
+    100% {
+      transform: scaleY(1);
+    }
+    48% {
+      transform: scaleY(0.08);
+    }
+  }
+  @keyframes eq {
+    from {
+      transform: scaleY(0.3);
+    }
+    to {
+      transform: scaleY(1);
     }
   }
   @keyframes pulse-dot {
@@ -229,6 +276,21 @@
     );
   }
 
+  /* Abyss (RF-18): only what the flashlight touches is visible. The light
+   * position comes from components/dive/Abyss. */
+  .abyss-mask {
+    -webkit-mask-image: radial-gradient(
+      circle var(--lr, 220px) at var(--lx, 50%) var(--ly, 50%),
+      black 28%,
+      transparent 100%
+    );
+    mask-image: radial-gradient(
+      circle var(--lr, 220px) at var(--lx, 50%) var(--ly, 50%),
+      black 28%,
+      transparent 100%
+    );
+  }
+
   .eyebrow {
     font-family: var(--font-mono);
     font-size: 0.75rem;
@@ -278,5 +340,10 @@
   }
   .motion-decor {
     display: none !important;
+  }
+  /* The flashlight doesn't move, so the text it would reveal is simply shown. */
+  .abyss-text {
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 }

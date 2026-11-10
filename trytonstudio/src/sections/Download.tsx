@@ -6,12 +6,12 @@ import { Reveal } from '../components/ui/Reveal'
 import { SectionHeading } from '../components/ui/SectionHeading'
 import { download, links } from '../content'
 
-/** 4.000 m. The seabed: final call with both downloads. */
+/** 4.000 m. The seabed: final call with both downloads. `Abyss` wraps it with the flashlight (RF-18). */
 export function Download() {
   return (
     <section
       id="download"
-      className="relative mx-auto flex max-w-[1200px] flex-col items-center gap-10 px-5 pt-[clamp(3.5rem,8vw,6rem)] pb-[clamp(7.5rem,13vw,10.5rem)] sm:px-8"
+      className="relative mx-auto flex max-w-[1200px] flex-col items-center gap-10 px-5 pt-[clamp(3.5rem,8vw,6rem)] pb-10 sm:px-8"
     >
       <Reveal>
         <Trident className="size-[72px] animate-float text-lume drop-shadow-[0_0_24px_rgb(95_242_224/0.5)]" />

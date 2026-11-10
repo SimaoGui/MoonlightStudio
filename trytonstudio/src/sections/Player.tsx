@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useImperativeHandle, useRef, useState, type CSSProperties, type Ref } from 'react'
 import { motion, useInView } from 'motion/react'
 import { ButtonLink } from '../components/ui/Button'
-import { FeatureList } from '../components/ui/FeatureList'
+import { FeatureSteps, type DemoHandle } from '../components/ui/FeatureSteps'
+import { pinnedDemo, revealDemo } from '../lib/demo'
 import { Icon } from '../components/ui/Icon'
 import { SectionHeading } from '../components/ui/SectionHeading'
 import { WindowFrame } from '../components/ui/WindowFrame'
@@ -113,16 +114,64 @@ function Scene({ kind, running }: { kind: SceneKind; running: boolean }) {
 const controlButton =
   'flex size-11 shrink-0 items-center justify-center rounded-control text-foam-50 transition duration-150 hover:bg-white/12 active:scale-95'
 
-/** Interactive mock of TrytonPlayer (RF-06): play, pause, seek, queue, speed and captions. */
-function PlayerWindow() {
+const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+const tabButton = (selected: boolean) =>
+  `min-h-11 rounded-[6px] px-2 transition-colors duration-150 ${
+    selected ? 'bg-white/12 text-foam-50' : 'text-haze hover:text-foam-50'
+  }`
+
+const spotRing = 'shadow-[inset_0_0_0_1.5px_var(--color-lume),0_0_24px_rgb(95_242_224/0.25)]'
+
+/**
+ * Interactive mock of TrytonPlayer (RF-06): play, pause, seek, queue, library,
+ * speed and captions. `applyStep` puts it in the state of one feature (RF-16).
+ */
+function PlayerWindow({ ref }: { ref: Ref<DemoHandle> }) {
   const stage = useRef<HTMLDivElement>(null)
   const inView = useInView(stage, { amount: 0.35 })
   const [playback, setPlayback] = useState({ index: 0, progress: 0.34 })
-  const [playing, setPlaying] = useState(
-    () => !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-  )
+  const [playing, setPlaying] = useState(() => !prefersReducedMotion())
   const [speedIndex, setSpeedIndex] = useState(0)
   const [captions, setCaptions] = useState(true)
+  const [tab, setTab] = useState<'queue' | 'library'>('queue')
+  const [query, setQuery] = useState('')
+  // Part of the window that a feature step has just changed, outlined for a moment.
+  const [spot, setSpot] = useState<'panel' | 'controls' | null>(null)
+  const spotTimer = useRef(0)
+
+  useImperativeHandle(ref, () => {
+    const flash = (part: 'panel' | 'controls') => {
+      setSpot(part)
+      window.clearTimeout(spotTimer.current)
+      spotTimer.current = window.setTimeout(() => setSpot(null), 2600)
+    }
+    return {
+      applyStep(index) {
+        if (index === 0) {
+          // Biblioteca local
+          setTab('library')
+          setQuery('')
+          setSpeedIndex(0)
+          flash('panel')
+        } else if (index === 1) {
+          // Fila sempre à mão: jump to the next video of the queue
+          setTab('queue')
+          setPlayback((current) => ({ index: (current.index + 1) % player.queue.length, progress: 0 }))
+          if (!prefersReducedMotion()) setPlaying(true)
+          setSpeedIndex(0)
+          flash('panel')
+        } else {
+          // Legendas e velocidade
+          setCaptions(true)
+          setSpeedIndex(2)
+          flash('controls')
+        }
+      },
+    }
+  }, [])
+
+  useEffect(() => () => window.clearTimeout(spotTimer.current), [])
 
   const video = player.queue[playback.index]
   const speed = SPEEDS[speedIndex]
@@ -147,6 +196,11 @@ function PlayerWindow() {
     setPlayback({ index: (index + player.queue.length) % player.queue.length, progress: 0 })
     setPlaying(true)
   }
+
+  const needle = query.trim().toLocaleLowerCase('pt-BR')
+  const found = player.queue
+    .map((item, index) => ({ ...item, index }))
+    .filter((item) => item.file.toLocaleLowerCase('pt-BR').includes(needle))
 
   return (
     <WindowFrame title={player.name} icon={<Icon name="play" className="size-4" />} restTilt={-4}>
@@ -235,7 +289,9 @@ function PlayerWindow() {
                 type="button"
                 aria-label={`Velocidade ${formatSpeed(speed)}. Trocar velocidade`}
                 onClick={() => setSpeedIndex((value) => (value + 1) % SPEEDS.length)}
-                className="flex h-11 min-w-12 shrink-0 items-center justify-center rounded-control px-1.5 text-xs tabular-nums transition duration-150 hover:bg-white/12"
+                className={`flex h-11 min-w-12 shrink-0 items-center justify-center rounded-control px-1.5 text-xs tabular-nums transition duration-300 hover:bg-white/12 ${
+                  spot === 'controls' ? spotRing : ''
+                }`}
               >
                 <span className="rounded-md border border-white/25 px-1.5 py-0.5">{formatSpeed(speed)}</span>
               </button>
@@ -244,7 +300,7 @@ function PlayerWindow() {
                 aria-label="Legendas"
                 aria-pressed={captions}
                 onClick={() => setCaptions((value) => !value)}
-                className={`${controlButton} ${captions ? 'text-lume' : ''}`}
+                className={`${controlButton} ${captions ? 'text-lume' : ''} ${spot === 'controls' ? spotRing : ''}`}
               >
                 <Icon name="captions" />
               </button>
@@ -252,61 +308,132 @@ function PlayerWindow() {
           </div>
         </div>
 
-        <div className="flex shrink-0 flex-col gap-1.5 border-t border-white/6 p-2.5 sm:w-[190px] sm:border-t-0 sm:border-l">
-          <p className="px-1.5 pb-0.5 text-xs text-fog">A seguir</p>
-          <ul className="flex flex-col gap-1.5">
-            {player.queue.map((item, index) => {
-              const current = index === playback.index
-              return (
-                <li key={item.title}>
-                  <button
-                    type="button"
-                    onClick={() => select(index)}
-                    aria-current={current ? 'true' : undefined}
-                    className={`flex min-h-11 w-full items-center gap-2.5 rounded-control p-1.5 text-left text-[13px] transition duration-150 ${
-                      current
-                        ? 'bg-white/8 text-foam-50 shadow-[inset_3px_0_0_var(--color-lume)]'
-                        : 'text-haze hover:bg-white/6 hover:text-foam-50'
-                    }`}
-                  >
-                    <span
-                      aria-hidden="true"
-                      className="h-[30px] w-[52px] shrink-0 rounded"
-                      style={{ background: sceneSky[item.scene] }}
-                    />
-                    <span className="flex min-w-0 flex-col pr-1.5">
-                      <span className="line-clamp-2 leading-snug">{item.title}</span>
-                      <span className="text-[11px] text-fog tabular-nums">{formatTime(item.seconds)}</span>
-                    </span>
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
+        <div
+          className={`flex shrink-0 flex-col gap-1.5 border-t border-white/6 p-2.5 transition-shadow duration-500 sm:w-[190px] sm:border-t-0 sm:border-l ${
+            spot === 'panel' ? spotRing : ''
+          }`}
+        >
+          <div role="group" aria-label="Painel lateral" className="grid grid-cols-2 gap-0.5 rounded-control bg-white/5 p-0.5 text-xs">
+            <button type="button" aria-pressed={tab === 'queue'} onClick={() => setTab('queue')} className={tabButton(tab === 'queue')}>
+              Fila
+            </button>
+            <button type="button" aria-pressed={tab === 'library'} onClick={() => setTab('library')} className={tabButton(tab === 'library')}>
+              Biblioteca
+            </button>
+          </div>
+
+          {tab === 'queue' ? (
+            <>
+              <p className="px-1.5 pb-0.5 text-xs text-fog">A seguir</p>
+              <ul className="flex flex-col gap-1.5">
+                {player.queue.map((item, index) => {
+                  const current = index === playback.index
+                  return (
+                    <li key={item.title}>
+                      <button
+                        type="button"
+                        onClick={() => select(index)}
+                        aria-current={current ? 'true' : undefined}
+                        className={`flex min-h-11 w-full items-center gap-2.5 rounded-control p-1.5 text-left text-[13px] transition duration-150 ${
+                          current
+                            ? 'bg-white/8 text-foam-50 shadow-[inset_3px_0_0_var(--color-lume)]'
+                            : 'text-haze hover:bg-white/6 hover:text-foam-50'
+                        }`}
+                      >
+                        <span
+                          aria-hidden="true"
+                          className="h-[30px] w-[52px] shrink-0 rounded"
+                          style={{ background: sceneSky[item.scene] }}
+                        />
+                        <span className="flex min-w-0 flex-col pr-1.5">
+                          <span className="line-clamp-2 leading-snug">{item.title}</span>
+                          <span className="text-[11px] text-fog tabular-nums">{formatTime(item.seconds)}</span>
+                        </span>
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            </>
+          ) : (
+            <>
+              <label className="relative block">
+                <span className="sr-only">{player.library.search}</span>
+                <Icon name="search" className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-haze" />
+                <input
+                  type="search"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Buscar"
+                  className="h-11 w-full rounded-control border border-white/12 bg-white/6 pr-2 pl-8 text-[13px] text-foam-50 placeholder:text-haze"
+                />
+              </label>
+              <p className="flex items-center gap-1.5 px-1.5 text-[11px] text-fog">
+                <Icon name="folder" className="size-3.5" />
+                {player.library.folder}
+              </p>
+              <ul className="flex flex-col gap-1">
+                {found.map((item) => {
+                  const current = item.index === playback.index
+                  return (
+                    <li key={item.file}>
+                      <button
+                        type="button"
+                        onClick={() => select(item.index)}
+                        aria-current={current ? 'true' : undefined}
+                        className={`flex min-h-11 w-full items-center gap-2 rounded-control px-1.5 text-left text-[13px] transition duration-150 ${
+                          current ? 'bg-white/8 text-foam-50' : 'text-haze hover:bg-white/6 hover:text-foam-50'
+                        }`}
+                      >
+                        <Icon name="film" className={`size-4 shrink-0 ${current ? 'text-lume' : 'text-tide-200'}`} />
+                        <span className="min-w-0 flex-1 truncate">{item.file}</span>
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+              {found.length === 0 && <p className="px-1.5 text-xs text-haze">{player.library.empty}</p>}
+            </>
+          )}
         </div>
       </div>
     </WindowFrame>
   )
 }
 
-/** 200 m. TrytonPlayer, the video player. */
+/**
+ * 200 m. TrytonPlayer, the video player. From 1024 px the window is pinned while
+ * the three features scroll past and drive it (RF-16).
+ */
 export function Player() {
+  const demo = useRef<DemoHandle>(null)
+  const frame = useRef<HTMLDivElement>(null)
+
+  const onStep = (index: number) => {
+    demo.current?.applyStep(index)
+    revealDemo(frame.current)
+  }
+
   return (
     <section
       id="player"
-      className="relative mx-auto grid max-w-[1200px] grid-cols-[minmax(0,1fr)] items-center gap-12 px-5 py-[clamp(3.5rem,8vw,6rem)] sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] lg:gap-14"
+      className="relative mx-auto grid max-w-[1200px] grid-cols-[minmax(0,1fr)] gap-y-8 px-5 py-[clamp(3.5rem,8vw,6rem)] [grid-template-areas:'head'_'demo'_'steps'_'cta'] sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] lg:gap-x-14 lg:gap-y-4 lg:[grid-template-areas:'head_demo'_'steps_demo'_'cta_demo']"
     >
-      <div className="flex min-w-0 flex-col gap-5">
+      <div className="min-w-0 [grid-area:head]">
         <SectionHeading depth={200} overline={player.overline} title={player.title} lead={player.lead} />
-        <FeatureList items={player.features} />
-        <div className="mt-3">
-          <ButtonLink href={player.cta.href} aria-label={`${player.cta.label}: ${player.name}`}>
-            <Icon name={player.cta.icon} className="size-[18px]" />
-            {player.cta.label}
-          </ButtonLink>
-        </div>
       </div>
-      <PlayerWindow />
+      <div ref={frame} className={pinnedDemo}>
+        <PlayerWindow ref={demo} />
+      </div>
+      <div className="min-w-0 [grid-area:steps]">
+        <FeatureSteps items={player.features} product={player.name} onStep={onStep} />
+      </div>
+      <div className="[grid-area:cta]">
+        <ButtonLink href={player.cta.href} aria-label={`${player.cta.label}: ${player.name}`}>
+          <Icon name={player.cta.icon} className="size-[18px]" />
+          {player.cta.label}
+        </ButtonLink>
+      </div>
     </section>
   )
 }

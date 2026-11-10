@@ -1,63 +1,33 @@
-import { useEffect, useRef } from 'react'
-import { useMotionValueEvent, useScroll, useTransform } from 'motion/react'
-import { formatDepth, sections } from '../../content'
+import { useRef } from 'react'
+import { useMotionValueEvent } from 'motion/react'
+import { discoveries, formatDepth, sections, zoneAt } from '../../content'
+import { useDepth } from '../../lib/depth'
 import { useActiveSection } from '../../lib/useActiveSection'
 
-/** Scroll position at which each section becomes the active one. */
-function measureStops(): number[] {
-  const maxScroll = document.documentElement.scrollHeight - window.innerHeight
-  let previous = -1
-  return sections.map(({ id }, index) => {
-    const element = document.getElementById(id)
-    const top = element ? element.getBoundingClientRect().top + window.scrollY : 0
-    const stop = index === 0 ? 0 : Math.min(top - window.innerHeight * 0.45, maxScroll)
-    previous = Math.max(stop, previous + 1)
-    return previous
-  })
-}
-
-/** Linear interpolation of the depth between two consecutive sections. */
-function depthAt(scroll: number, stops: number[]): number {
-  for (let index = 1; index < stops.length; index += 1) {
-    if (scroll <= stops[index]) {
-      const span = stops[index] - stops[index - 1]
-      const ratio = span > 0 ? Math.max(0, scroll - stops[index - 1]) / span : 1
-      return sections[index - 1].depth + (sections[index].depth - sections[index - 1].depth) * ratio
-    }
-  }
-  return sections[sections.length - 1].depth
-}
+/** Sections and discoveries in the order of the dive. */
+const points = [
+  ...sections.map((section) => ({ ...section, kind: 'section' as const })),
+  ...discoveries.map(({ id, title, depth }) => ({ id, label: title, depth, kind: 'discovery' as const })),
+].sort((a, b) => a.depth - b.depth)
 
 /**
- * Side gauge shown from 1024 px (RF-04): live depth in meters and one point
- * per section. From 1024 to 1439 px the page has no free margin, so the gauge
- * is a slim rail (points plus a vertical readout). From 1440 px it shows the
- * depth of every point. The readout is written straight to the DOM, so
+ * Side gauge shown from 1024 px (RF-04): live depth in meters, the ocean zone
+ * (RF-15), one point per section and a smaller mark per discovery (RF-14).
+ * From 1024 to 1439 px the page has no free margin, so the gauge is a slim
+ * rail (points plus a vertical readout). From 1440 px it shows the depth of
+ * every point and the zone. The readout is written straight to the DOM, so
  * scrolling doesn't re-render React.
  */
 export function DepthGauge() {
   const active = useActiveSection()
   const readout = useRef<HTMLSpanElement>(null)
-  const stops = useRef<number[]>(sections.map((_, index) => index * 1000))
-  const { scrollY } = useScroll()
-  const depth = useTransform(() => depthAt(scrollY.get(), stops.current))
-
-  useEffect(() => {
-    const measure = () => {
-      stops.current = measureStops()
-    }
-    measure()
-    const observer = new ResizeObserver(measure)
-    observer.observe(document.body)
-    window.addEventListener('resize', measure)
-    return () => {
-      observer.disconnect()
-      window.removeEventListener('resize', measure)
-    }
-  }, [])
+  const zone = useRef<HTMLSpanElement>(null)
+  const depth = useDepth()
 
   useMotionValueEvent(depth, 'change', (value) => {
     if (readout.current) readout.current.textContent = formatDepth(value)
+    const name = zoneAt(value)
+    if (zone.current && zone.current.textContent !== name) zone.current.textContent = name
   })
 
   return (
@@ -65,7 +35,7 @@ export function DepthGauge() {
       aria-label="Profundidade"
       className="acrylic-thin fixed top-1/2 right-1 z-40 hidden -translate-y-1/2 flex-col items-center gap-1 rounded-2xl p-1 font-mono text-[11px] lg:flex min-[1440px]:right-5 min-[1440px]:items-stretch min-[1440px]:p-2.5"
     >
-      <p className="flex justify-center border-b border-white/10 py-2 text-haze min-[1440px]:justify-start min-[1440px]:px-2 min-[1440px]:pt-0">
+      <p className="flex flex-col items-center gap-0.5 border-b border-white/10 py-2 text-haze min-[1440px]:items-start min-[1440px]:px-2 min-[1440px]:pt-0">
         <span className="sr-only">Profundidade atual: </span>
         <span
           ref={readout}
@@ -73,8 +43,27 @@ export function DepthGauge() {
         >
           {formatDepth(0)}
         </span>
+        <span ref={zone} data-zone="" className="text-[10px] text-haze max-[1439px]:sr-only">
+          {zoneAt(0)}
+        </span>
       </p>
-      {sections.map((section) => {
+      {points.map((section) => {
+        if (section.kind === 'discovery') {
+          return (
+            <a
+              key={section.id}
+              href={`#${section.id}`}
+              aria-label={`Descoberta: ${section.label}, ${formatDepth(section.depth)}`}
+              title={`${section.label} · ${formatDepth(section.depth)}`}
+              className="flex h-3.5 w-6 items-center justify-center gap-2 rounded-md text-fog transition-colors duration-150 hover:bg-white/8 hover:text-foam-50 min-[1440px]:w-auto min-[1440px]:justify-start min-[1440px]:px-2"
+            >
+              <span aria-hidden="true" className="mx-0.5 size-1 rounded-full bg-current" />
+              <span className="hidden text-[10px] tabular-nums min-[1440px]:inline">
+                {formatDepth(section.depth)}
+              </span>
+            </a>
+          )
+        }
         const isActive = section.id === active
         return (
           <a
